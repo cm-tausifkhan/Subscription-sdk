@@ -56,5 +56,16 @@ export const featuresRouter = (pool: DBPool) => {
     }
   });
 
+  // Enable or disable a feature
+  router.patch('/:id/toggle', async (req, res) => {
+    try {
+    const { isEnabled } = req.body
+    const feature = await featuresService.toggleFeature(req.params.id, isEnabled)
+    res.json(feature)
+    } catch (err) {
+    res.status(500).json({ error: 'Failed to toggle feature' })
+    }
+  })
+
   return router;
 };
