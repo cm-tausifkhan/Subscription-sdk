@@ -12,3 +12,6 @@ export type UserRole = 'admin' | 'guest'
 export type PaymentGateway = 'stripe' | 'razorpay' | 'paypal' | 'other'
 
 export type SubscriptionStatus = 'active' | 'cancelled' | 'expired' | 'pending'
+
+
+

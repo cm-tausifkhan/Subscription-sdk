@@ -37,17 +37,33 @@ export class FeaturesService {
     return result.rows;
   }
 
-  // Update a feature text
+  // updates the feature details
   async update(
     id: string,
-    data: { featureText?: string; displayOrder?: number },
+    data: {
+      featureText?: string;
+      featureDescription?: string;
+      limitationType?: LimitationType;
+      limitationValue?: number | null;
+      displayOrder?: number;
+    },
   ) {
     const result = await this.pool.query(
       `UPDATE plan_features SET 
-        feature_text = COALESCE($1, feature_text), 
-        display_order = COALESCE($2, display_order) 
-       WHERE id = $3 RETURNING *`,
-      [data.featureText, data.displayOrder, id],
+      feature_text = COALESCE($1, feature_text), 
+      feature_description = COALESCE($2, feature_description),
+      limitation_type = COALESCE($3, limitation_type),
+      limitation_value = COALESCE($4, limitation_value),
+      display_order = COALESCE($5, display_order) 
+     WHERE id = $6 RETURNING *`,
+      [
+        data.featureText ?? null,
+        data.featureDescription ?? null,
+        data.limitationType ?? null,
+        data.limitationValue ?? null,
+        data.displayOrder ?? null,
+        id,
+      ],
     );
     return result.rows[0];
   }

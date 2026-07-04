@@ -9,6 +9,9 @@ import { pricingRouter } from "./admin/routes/pricing.routes";
 import { customersRouter } from "./admin/routes/customers.routes";
 import { authRouter } from "./admin/routes/auth.routes";
 import { AuthService } from "./modules/auth/auth.service";
+import { SubscriptionService } from "./modules/subscriptions/subscription.service";
+import { subscriptionRouter } from "./admin/routes/subscription.routes";
+
 
 dotenv.config();
 
@@ -32,6 +35,8 @@ app.use("/api/plans", plansRouter(pool));
 app.use("/api/features", featuresRouter(pool));
 app.use("/api/pricing", pricingRouter(pool));
 app.use("/api/customers", customersRouter(pool));
+app.use("/api/subscriptions", subscriptionRouter(pool));
+
 
 process.on("unhandledRejection", (err) => {
   console.error("❌ Unhandled error:", err);
