@@ -1,9 +1,14 @@
 import { DBPool } from "../../core/database";
 import { LimitationType } from "../../types";
-export class FeaturesService {
-  constructor(private pool: DBPool) {}
+import { FeaturesRepository } from "../../repository/Features.repository";
 
-  // Add a feature to a plan
+export class FeaturesService {
+  private repo: FeaturesRepository;
+
+  constructor(pool: DBPool) {
+    this.repo = new FeaturesRepository(pool);
+  }
+
   async create(data: {
     planId: string;
     featureText: string;
@@ -12,32 +17,22 @@ export class FeaturesService {
     limitationValue?: number;
     displayOrder?: number;
   }) {
-    const result = await this.pool.query(
-      `INSERT INTO plan_features 
-      (plan_id, feature_text, feature_description, limitation_type, limitation_value, display_order) 
-     VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`,
-      [
-        data.planId,
-        data.featureText,
-        data.featureDescription || null,
-        data.limitationType,
-        data.limitationValue || null,
-        data.displayOrder || 0,
-      ],
+    const result = await this.repo.create(
+      data.planId,
+      data.featureText,
+      data.featureDescription || null,
+      data.limitationType,
+      data.limitationValue || null,
+      data.displayOrder || 0
     );
     return result.rows[0];
   }
 
-  // Get all features for a plan
   async findByPlan(planId: string) {
-    const result = await this.pool.query(
-      `SELECT * FROM plan_features WHERE plan_id = $1 ORDER BY display_order ASC`,
-      [planId],
-    );
+    const result = await this.repo.findByPlan(planId);
     return result.rows;
   }
 
-  // updates the feature details
   async update(
     id: string,
     data: {
@@ -46,47 +41,31 @@ export class FeaturesService {
       limitationType?: LimitationType;
       limitationValue?: number | null;
       displayOrder?: number;
-    },
+    }
   ) {
-    const result = await this.pool.query(
-      `UPDATE plan_features SET 
-      feature_text = COALESCE($1, feature_text), 
-      feature_description = COALESCE($2, feature_description),
-      limitation_type = COALESCE($3, limitation_type),
-      limitation_value = COALESCE($4, limitation_value),
-      display_order = COALESCE($5, display_order) 
-     WHERE id = $6 RETURNING *`,
-      [
-        data.featureText ?? null,
-        data.featureDescription ?? null,
-        data.limitationType ?? null,
-        data.limitationValue ?? null,
-        data.displayOrder ?? null,
-        id,
-      ],
+    const result = await this.repo.update(
+      id,
+      data.featureText,
+      data.featureDescription,
+      data.limitationType,
+      data.limitationValue,
+      data.displayOrder
     );
     return result.rows[0];
   }
 
-  // Delete a feature
   async delete(id: string) {
-    await this.pool.query(`DELETE FROM plan_features WHERE id = $1`, [id]);
+    await this.repo.delete(id);
     return { message: "Feature deleted successfully" };
   }
 
-  // Delete all features of a plan
   async deleteByPlan(planId: string) {
-    await this.pool.query(`DELETE FROM plan_features WHERE plan_id = $1`, [
-      planId,
-    ]);
+    await this.repo.deleteByPlan(planId);
     return { message: "All features deleted for this plan" };
   }
 
   async toggleFeature(id: string, isEnabled: boolean) {
-    const result = await this.pool.query(
-      `UPDATE plan_features SET is_enabled = $1 WHERE id = $2 RETURNING *`,
-      [isEnabled, id],
-    );
+    const result = await this.repo.toggleFeature(id, isEnabled);
     return result.rows[0];
   }
 }

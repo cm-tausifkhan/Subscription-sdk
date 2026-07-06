@@ -89,7 +89,8 @@ export default function DashboardPage() {
   /* ── Effects ── */
   useEffect(() => {
     fetchPlans();
-  }, [fetchPlans]);
+    fetchTotalCustomers();
+  }, [fetchPlans ,  fetchTotalCustomers]);
 
   useEffect(() => {
     if (selectedPlanId) {
@@ -175,7 +176,8 @@ export default function DashboardPage() {
           {!selectedPlanId && (
             <PlanOverview
               plans={plans}
-              customers={customers}
+              
+              totalCustomers={totalCustomers}
               loading={loading}
               countForPlan={countForPlan}
               onSelectPlan={setSelectedPlanId}

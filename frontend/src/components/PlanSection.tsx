@@ -355,7 +355,7 @@ export function PlanModals({
  */
 interface PlanOverviewProps {
   plans: Plan[];
-  customers: { plan_id?: string }[];
+  totalCustomers: number; 
   loading: boolean;
   countForPlan: (id: string) => number;
   onSelectPlan: (id: string) => void;
@@ -365,7 +365,8 @@ interface PlanOverviewProps {
 
 export function PlanOverview({
   plans,
-  customers,
+  //customers,
+  totalCustomers,
   loading,
   countForPlan,
   onSelectPlan,
@@ -378,10 +379,10 @@ export function PlanOverview({
       <div className="grid grid-cols-3 gap-4 mb-8">
         {[
           { label: "Total Plans", value: plans.length, color: "text-indigo-400" },
-          { label: "Total Customers", value: customers.length, color: "text-emerald-400" },
+          { label: "Total Customers", value: totalCustomers, color: "text-emerald-400" },
           {
             label: "On a Plan",
-            value: customers.filter((c) => c.plan_id).length,
+            value: totalCustomers,
             color: "text-amber-400",
           },
         ].map((s) => (
