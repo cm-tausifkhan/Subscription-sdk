@@ -20,6 +20,17 @@ export const subscriptionRouter = (pool: DBPool) => {
     }
   })
 
+  /* Get all customers subscribed to a plan */
+router.get('/plan/:planId/customers',  async (req, res) => {
+  try {
+    const customers = await subscriptionService.findByPlan(req.params.planId as string)
+    res.json(customers)
+  } catch (err) {
+    logError('subscriptions.findByPlan', err)
+    res.status(500).json({ error: 'Failed to fetch plan customers' })
+  }
+})
+
   /* Get all subscribed plans of a customer */
 router.get('/:id/subscriptions', async (req, res) => {
   try {
@@ -39,15 +50,6 @@ router.delete('/subscriptions/:subscriptionId', async (req, res) => {
     res.status(500).json({ error: 'Failed to remove customer from plan' })
   }
 })
-/* Get all customers subscribed to a plan */
-router.get('/plan/:planId/customers',  async (req, res) => {
-  try {
-    const customers = await subscriptionService.findByPlan(req.params.planId as string)
-    res.json(customers)
-  } catch (err) {
-    logError('subscriptions.findByPlan', err)
-    res.status(500).json({ error: 'Failed to fetch plan customers' })
-  }
-})
+
 return router
 }

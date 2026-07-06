@@ -56,7 +56,7 @@ export default function CustomersSection({
     const fetchPlanCustomers = async () => {
       const token = localStorage.getItem('token')
       const res = await fetch(
-        `http://localhost:3000/api/subscription/plan/${planId}/customers`,
+        `http://localhost:3000/api/subscriptions/plan/${planId}/customers`,
         { headers: { Authorization: `Bearer ${token}` } }
       )
       const data = await res.json()
@@ -75,7 +75,7 @@ export default function CustomersSection({
         </span>
       </div>
 
-      {customers.length === 0 ? (
+      {planCustomers.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-20 gap-3 text-slate-600">
           <span className="text-4xl opacity-30">👥</span>
           <p className="text-sm text-slate-500">No customers on this plan</p>
@@ -85,7 +85,7 @@ export default function CustomersSection({
         </div>
       ) : (
         <div className="divide-y divide-slate-800">
-          {customers.map((c) => (
+          {planCustomers.map((c) => (
             <div
               key={c.id}
               className="px-5 py-3.5 hover:bg-slate-800/40 transition"

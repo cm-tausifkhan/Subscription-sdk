@@ -140,7 +140,7 @@ export default function FeaturesSection({
               <option value="project">Project (max workspaces)</option>
             </select>
           </Field>
-          {limitationType === "numeric_limit" && (
+          {limitationType !== "feature_access" && (
             <Field label="Limit Value">
               <input
                 className={inputCls}
@@ -152,7 +152,6 @@ export default function FeaturesSection({
                     e.target.value === "" ? "" : Number(e.target.value),
                   )
                 }
-                required
               />
             </Field>
           )}

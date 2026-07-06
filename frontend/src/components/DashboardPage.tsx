@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useCallback } from "react";
 import axios from "axios";
 
-import type{ Plan, Feature, Pricing, Customer, Tab} from "./types";
-import { API } from "./constants"
+import type { Plan, Feature, Pricing, Customer, Tab } from "./types";
+import { API } from "./constants";
 import { PlanSidebar, PlanModals, PlanOverview } from "./PlanSection";
 import FeaturesSection from "./FeatureSection";
 import PricingSection from "./PricingSection";
@@ -32,6 +32,8 @@ export default function DashboardPage() {
   /* ── Modal visibility ── */
   const [showPlanModal, setShowPlanModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
+
+  const [totalCustomers, setTotalCustomers] = useState<number>(0);
 
   /* ── Fetchers ── */
   const fetchPlans = useCallback(async () => {
@@ -64,9 +66,20 @@ export default function DashboardPage() {
     }
   }, []);
 
-  const fetchCustomers = useCallback(async () => {
+  const fetchTotalCustomers = useCallback(async () => {
+  try {
+    const res = await axios.get(`${API}/customers/count`);
+    setTotalCustomers(res.data.count);
+  } catch (e) {
+    console.error(e);
+  }
+}, []);
+
+  const fetchCustomers = useCallback(async (planId: string) => {
     try {
-      const res = await axios.get(`${API}/customers`);
+      const res = await axios.get(
+        `${API}/subscriptions/plan/${planId}/customers`,
+      );
       setCustomers(res.data);
     } catch (e) {
       console.error(e);
@@ -76,24 +89,27 @@ export default function DashboardPage() {
   /* ── Effects ── */
   useEffect(() => {
     fetchPlans();
-    fetchCustomers();
-  }, [fetchPlans, fetchCustomers]);
+  }, [fetchPlans]);
 
   useEffect(() => {
     if (selectedPlanId) {
       fetchFeatures(selectedPlanId);
       fetchPricing(selectedPlanId);
+      fetchCustomers(selectedPlanId);
       setTab("features");
     } else {
       setFeatures([]);
       setPricing([]);
+      setCustomers([]);
     }
-  }, [selectedPlanId, fetchFeatures, fetchPricing]);
+  }, [selectedPlanId, fetchFeatures, fetchPricing, fetchCustomers]);
 
   /* ── Derived ── */
   const selectedPlan = plans.find((p) => p.id === selectedPlanId);
-  const planCustomers = customers.filter((c) => c.plan_id === selectedPlanId);
-  const countForPlan = (id: string) => customers.filter((c) => c.plan_id === id).length;
+
+  const planCustomers = customers;
+  const countForPlan = (id: string) =>
+    id === selectedPlanId ? customers.length : 0;
 
   /* ── Plan delete ── */
   const handleDeletePlan = async (id: string, e: React.MouseEvent) => {
@@ -113,7 +129,6 @@ export default function DashboardPage() {
   ══════════════════════════════════════════════════════════════════════════ */
   return (
     <div className="flex h-screen bg-slate-950 text-slate-100 overflow-hidden font-sans fixed inset-0">
-
       {/* ━━━━━━━━━━━━━━━━━━ SIDEBAR ━━━━━━━━━━━━━━━━━━ */}
       <PlanSidebar
         plans={plans}
@@ -128,7 +143,6 @@ export default function DashboardPage() {
 
       {/* ━━━━━━━━━━━━━━━━━━ MAIN ━━━━━━━━━━━━━━━━━━ */}
       <div className="flex flex-col flex-1 min-w-0">
-
         {/* ── Topbar ── */}
         <header className="h-14 flex items-center justify-between px-6 border-b border-slate-800 bg-slate-950 flex-shrink-0">
           <div className="flex items-center gap-3">
@@ -143,7 +157,9 @@ export default function DashboardPage() {
               {selectedPlan && (
                 <>
                   <span className="text-slate-700">/</span>
-                  <span className="text-slate-200 font-medium">{selectedPlan.name}</span>
+                  <span className="text-slate-200 font-medium">
+                    {selectedPlan.name}
+                  </span>
                 </>
               )}
             </div>
@@ -155,7 +171,6 @@ export default function DashboardPage() {
 
         {/* ── Page content ── */}
         <main className="flex-1 overflow-y-auto">
-
           {/* ── OVERVIEW (no plan selected) ── */}
           {!selectedPlanId && (
             <PlanOverview
@@ -172,12 +187,13 @@ export default function DashboardPage() {
           {/* ── PLAN DETAIL ── */}
           {selectedPlanId && selectedPlan && (
             <div className="p-6">
-
               {/* Plan header */}
               <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
                 <div>
                   <div className="flex items-center gap-2">
-                    <h1 className="text-xl font-bold text-slate-100">{selectedPlan.name}</h1>
+                    <h1 className="text-xl font-bold text-slate-100">
+                      {selectedPlan.name}
+                    </h1>
                     {!selectedPlan.is_active && (
                       <span className="text-xs bg-slate-700 text-slate-400 border border-slate-600 px-2 py-0.5 rounded-full">
                         Inactive
@@ -196,19 +212,21 @@ export default function DashboardPage() {
 
                   {/* Tabs */}
                   <div className="flex gap-1 bg-slate-900 border border-slate-800 rounded-lg p-1">
-                    {(["features", "pricing", "customers"] as Tab[]).map((t) => (
-                      <button
-                        key={t}
-                        onClick={() => setTab(t)}
-                        className={`px-4 py-1.5 text-sm font-medium rounded-md transition ${
-                          tab === t
-                            ? "bg-slate-800 text-slate-100 shadow-sm"
-                            : "text-slate-500 hover:text-slate-300"
-                        }`}
-                      >
-                        {t.charAt(0).toUpperCase() + t.slice(1)}
-                      </button>
-                    ))}
+                    {(["features", "pricing", "customers"] as Tab[]).map(
+                      (t) => (
+                        <button
+                          key={t}
+                          onClick={() => setTab(t)}
+                          className={`px-4 py-1.5 text-sm font-medium rounded-md transition ${
+                            tab === t
+                              ? "bg-slate-800 text-slate-100 shadow-sm"
+                              : "text-slate-500 hover:text-slate-300"
+                          }`}
+                        >
+                          {t.charAt(0).toUpperCase() + t.slice(1)}
+                        </button>
+                      ),
+                    )}
                   </div>
 
                   <button
@@ -252,7 +270,6 @@ export default function DashboardPage() {
                   customers={planCustomers}
                 />
               )}
-
             </div>
           )}
         </main>
@@ -268,7 +285,6 @@ export default function DashboardPage() {
         onPlanCreated={fetchPlans}
         onPlanUpdated={fetchPlans}
       />
-
     </div>
   );
 }

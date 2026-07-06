@@ -26,6 +26,17 @@ export const customersRouter = (pool: DBPool) => {
     }
   })
 
+  router.get('/count', async (req, res) => {
+  try {
+    const result = await pool.query(
+      `SELECT COUNT(*) FROM customers WHERE is_active = true`
+    )
+    res.json({ count: parseInt(result.rows[0].count) })
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to fetch customer count' })
+  }
+})
+
   /* Get customer by ID */
   router.get('/:id', async (req, res) => {
     try {

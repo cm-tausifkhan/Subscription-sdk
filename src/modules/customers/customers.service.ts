@@ -31,7 +31,7 @@ export class CustomersService {
     );
     return result.rows;
   }
-
+  
   /* Get customer by ID */
   async findById(id: string) {
     const result = await this.pool.query(
