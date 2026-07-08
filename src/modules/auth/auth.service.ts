@@ -1,46 +1,35 @@
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
-import { DBPool } from "../../core/database";
+import { DB } from "../../core/database";
 import { UserRole } from "../../types";
 import { AuthRepository } from "../../repository/Auth.repository";
 
 export class AuthService {
   private repo: AuthRepository;
 
-  constructor(pool: DBPool) {
-    this.repo = new AuthRepository(pool);
+  constructor(db: DB) {
+    this.repo = new AuthRepository(db);
   }
 
-  /*
-   * Seed the hardcoded admin from .env into the users table
-   * This runs once on server start
-   * If admin already exists it skips
-   */
   async seedAdmin() {
     const existing = await this.repo.findByEmail(process.env.ADMIN_EMAIL!);
-    if (existing.rows.length > 0) {
+    if (existing) {
       console.log("✅ Admin already exists - skipping seed");
       return;
     }
 
     const hashedPassword = await bcrypt.hash(process.env.ADMIN_PASSWORD!, 10);
-
     await this.repo.seedAdmin(
       process.env.ADMIN_NAME!,
       process.env.ADMIN_EMAIL!,
       hashedPassword,
-      process.env.ADMIN_ROLE!
+      process.env.ADMIN_ROLE!,
     );
     console.log("✅ Admin seeded successfully");
   }
 
-  /*
-   * Login - verify email and password
-   * Returns JWT token with 1 day expiry
-   */
   async login(data: { email: string; password: string }) {
-    const result = await this.repo.findActiveByEmail(data.email);
-    const user = result.rows[0];
+    const user = await this.repo.findActiveByEmail(data.email);
 
     if (!user) {
       throw new Error("Invalid email or password");
@@ -54,7 +43,7 @@ export class AuthService {
     const token = jwt.sign(
       { id: user.id, email: user.email, role: user.role as UserRole, name: user.name },
       process.env.JWT_SECRET!,
-      { expiresIn: "1d" }
+      { expiresIn: "1d" },
     );
 
     return {
@@ -63,11 +52,7 @@ export class AuthService {
     };
   }
 
-  /*
-   * Get current logged in user from token
-   */
   async getMe(userId: string) {
-    const result = await this.repo.findById(userId);
-    return result.rows[0];
+    return this.repo.findById(userId);
   }
 }

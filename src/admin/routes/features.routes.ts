@@ -1,8 +1,8 @@
 import { Router } from "express";
 import { FeaturesService } from "../../modules/features/features.service";
-import { DBPool } from "../../core/database";
+import { DB } from "../../core/database";
 
-export const featuresRouter = (pool: DBPool) => {
+export const featuresRouter = (pool: DB) => {
   const router = Router();
   const featuresService = new FeaturesService(pool);
 
@@ -57,15 +57,18 @@ export const featuresRouter = (pool: DBPool) => {
   });
 
   // Enable or disable a feature
-  router.patch('/:id/toggle', async (req, res) => {
+  router.patch("/:id/toggle", async (req, res) => {
     try {
-    const { isEnabled } = req.body
-    const feature = await featuresService.toggleFeature(req.params.id, isEnabled)
-    res.json(feature)
+      const { isEnabled } = req.body;
+      const feature = await featuresService.toggleFeature(
+        req.params.id,
+        isEnabled,
+      );
+      res.json(feature);
     } catch (err) {
-    res.status(500).json({ error: 'Failed to toggle feature' })
+      res.status(500).json({ error: "Failed to toggle feature" });
     }
-  })
+  });
 
   return router;
 };

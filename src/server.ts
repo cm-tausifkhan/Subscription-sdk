@@ -1,8 +1,9 @@
 import express from "express";
 import dotenv from "dotenv";
 import cors from "cors";
-import { createPool } from "./core/database";
-import { runMigrations } from "./core/migrations";
+import { initDB } from "./core/database";
+import { getDBConfig } from "./core/config";
+import { runMigrations } from "./migration";
 import { plansRouter } from "./admin/routes/plans.routes";
 import { featuresRouter } from "./admin/routes/features.routes";
 import { pricingRouter } from "./admin/routes/pricing.routes";
@@ -11,7 +12,6 @@ import { authRouter } from "./admin/routes/auth.routes";
 import { AuthService } from "./modules/auth/auth.service";
 import { SubscriptionService } from "./modules/subscriptions/subscription.service";
 import { subscriptionRouter } from "./admin/routes/subscription.routes";
-
 
 dotenv.config();
 
@@ -25,27 +25,27 @@ app.use(
   }),
 );
 
-const pool = createPool(process.env.DATABASE_URL!);
+const db = initDB(getDBConfig());
 
 /* Public routes - no token needed */
-app.use("/api/auth", authRouter(pool));
+app.use("/api/auth", authRouter(db));
 
 /* Protected routes - token required */
-app.use("/api/plans", plansRouter(pool));
-app.use("/api/features", featuresRouter(pool));
-app.use("/api/pricing", pricingRouter(pool));
-app.use("/api/customers", customersRouter(pool));
-app.use("/api/subscriptions", subscriptionRouter(pool));
-
+app.use("/api/plans", plansRouter(db));
+app.use("/api/features", featuresRouter(db));
+app.use("/api/pricing", pricingRouter(db));
+app.use("/api/customers", customersRouter(db));
+app.use("/api/subscriptions", subscriptionRouter(db));
 
 process.on("unhandledRejection", (err) => {
   console.error("❌ Unhandled error:", err);
 });
+
 const start = async () => {
-  await runMigrations(pool);
+  await runMigrations(db);
 
   /* Seed hardcoded admin from .env on server start */
-  const authService = new AuthService(pool);
+  const authService = new AuthService(db);
   await authService.seedAdmin();
 
   app.listen(process.env.PORT || 3000, () => {

@@ -1,11 +1,11 @@
-import { DBPool } from "../../core/database";
+import { DB } from "../../core/database/index.js";
 import { LimitationType } from "../../types";
 import { FeaturesRepository } from "../../repository/Features.repository";
 
 export class FeaturesService {
   private repo: FeaturesRepository;
 
-  constructor(pool: DBPool) {
+  constructor(pool: DB) {
     this.repo = new FeaturesRepository(pool);
   }
 
@@ -23,14 +23,14 @@ export class FeaturesService {
       data.featureDescription || null,
       data.limitationType,
       data.limitationValue || null,
-      data.displayOrder || 0
+      data.displayOrder || 0,
     );
-    return result.rows[0];
+    return result;
   }
 
   async findByPlan(planId: string) {
     const result = await this.repo.findByPlan(planId);
-    return result.rows;
+    return result;
   }
 
   async update(
@@ -41,7 +41,7 @@ export class FeaturesService {
       limitationType?: LimitationType;
       limitationValue?: number | null;
       displayOrder?: number;
-    }
+    },
   ) {
     const result = await this.repo.update(
       id,
@@ -49,9 +49,9 @@ export class FeaturesService {
       data.featureDescription,
       data.limitationType,
       data.limitationValue,
-      data.displayOrder
+      data.displayOrder,
     );
-    return result.rows[0];
+    return result;
   }
 
   async delete(id: string) {
@@ -66,6 +66,6 @@ export class FeaturesService {
 
   async toggleFeature(id: string, isEnabled: boolean) {
     const result = await this.repo.toggleFeature(id, isEnabled);
-    return result.rows[0];
+    return result;
   }
 }

@@ -1,7 +1,9 @@
-import { DBPool } from "./database";
-// gateway_customer_id is the id provided by the payment gateway (stripe, razorpay, etc.) to identify the customer in their system
+
+import { DB } from "../core/database";
+//import { initDB } from "../core/database/index.ts";
+//mport { getDBConfig } from "./config";// gateway_customer_id is the id provided by the payment gateway (stripe, razorpay, etc.) to identify the customer in their system
 //payment_method_id is the id provided by the payment gateway (stripe, razorpay, etc.) to identify the payment method in their system like card info and all
-export const runMigrations = async (pool: DBPool) => {
+export const runMigrations = async (pool: DB) => {
   await pool.query(`
 
     CREATE TABLE IF NOT EXISTS users (

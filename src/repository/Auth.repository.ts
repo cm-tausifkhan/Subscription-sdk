@@ -1,40 +1,42 @@
-import { DBPool } from "../core/database";
-import type { QueryResult } from "pg";
+import { DB } from "../core/database";
 
 export class AuthRepository {
-  constructor(private pool: DBPool) {}
+  constructor(private db: DB) {}
 
-  async findByEmail(email: string): Promise<QueryResult<any>> {
-    return this.pool.query(
-      `SELECT * FROM users WHERE email = $1`,
-      [email]
-    );
+  async findByEmail(email: string) {
+    return this.db
+      .selectFrom("users")
+      .where("email", "=", email)
+      .selectAll()
+      .executeTakeFirst();
   }
 
-  async findActiveByEmail(email: string): Promise<QueryResult<any>> {
-    return this.pool.query(
-      `SELECT * FROM users WHERE email = $1 AND is_active = true`,
-      [email]
-    );
+  async findActiveByEmail(email: string) {
+    return this.db
+      .selectFrom("users")
+      .where("email", "=", email)
+      .where("is_active", "=", true)
+      .selectAll()
+      .executeTakeFirst();
   }
 
   async seedAdmin(
     name: string,
     email: string,
     hashedPassword: string,
-    role: string
-  ): Promise<QueryResult<any>> {
-    return this.pool.query(
-      `INSERT INTO users (name, email, password, role)
-       VALUES ($1, $2, $3, $4)`,
-      [name, email, hashedPassword, role]
-    );
+    role: string,
+  ) {
+    return this.db
+      .insertInto("users")
+      .values({ name, email, password: hashedPassword, role })
+      .execute();
   }
 
-  async findById(id: string): Promise<QueryResult<any>> {
-    return this.pool.query(
-      `SELECT id, name, email, role, created_at FROM users WHERE id = $1`,
-      [id]
-    );
+  async findById(id: string) {
+    return this.db
+      .selectFrom("users")
+      .select(["id", "name", "email", "role", "created_at"])
+      .where("id", "=", id)
+      .executeTakeFirst();
   }
 }

@@ -1,45 +1,52 @@
-import { DBPool } from "../../core/database";
+import { DB } from "../../core/database/index.js";
 import { SubscriptionRepository } from "../../repository/Subscription.repository";
 
 export class SubscriptionService {
   private repo: SubscriptionRepository;
 
-  constructor(pool: DBPool) {
+  constructor(pool: DB) {
     this.repo = new SubscriptionRepository(pool);
   }
 
   async create(data: { customerId: string; planId: string; expiresAt?: Date }) {
     const existing = await this.repo.findActiveByCustomer(data.customerId);
-    if (existing.rows.length > 0) {
+    if (existing) {
       throw new Error("Customer already has an active subscription");
     }
 
     const customer = await this.repo.findActiveCustomer(data.customerId);
-    if (customer.rows.length === 0) {
+    if (!customer) {
       throw new Error("Customer not found");
     }
 
     const plan = await this.repo.findActivePlan(data.planId);
-    if (plan.rows.length === 0) {
+    if (!plan) {
       throw new Error("Plan not found");
     }
 
-    const result = await this.repo.create(data.customerId, data.planId, data.expiresAt || null);
-    return result.rows[0];
+    const result = await this.repo.create(
+      data.customerId,
+      data.planId,
+      data.expiresAt || null,
+    );
+    return result;
   }
 
   async getCustomerSubscriptions(customerId: string) {
     const result = await this.repo.findByCustomer(customerId);
-    return result.rows;
+    return result;
   }
 
   async removeFromPlan(subscriptionId: string) {
     const result = await this.repo.cancel(subscriptionId);
-    return { message: "Customer removed from plan successfully", data: result.rows[0] };
+    return {
+      message: "Customer removed from plan successfully",
+      data: result,
+    };
   }
 
   async findByPlan(planId: string) {
     const result = await this.repo.findByPlan(planId);
-    return result.rows;
+    return result;
   }
 }

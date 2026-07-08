@@ -1,8 +1,8 @@
 import { Router } from "express";
 import { PlansService } from "../../modules/plans/plans.service";
-import { DBPool } from "../../core/database";
+import { DBPool } from "../../core/database/index.ts";
 import { authMiddleware, AuthRequest } from "../../middleware/auth.middleware";
-import { logError } from '../../core/logger'
+import { logError } from "../../core/logger";
 
 export const plansRouter = (pool: DBPool) => {
   const router = Router();
@@ -17,9 +17,9 @@ export const plansRouter = (pool: DBPool) => {
       });
       res.status(201).json(plan);
     } catch (err) {
-  logError('plans.create', err)
-  res.status(500).json({ error: 'Failed to create plan' })
-}
+      logError("plans.create", err);
+      res.status(500).json({ error: "Failed to create plan" });
+    }
   });
 
   /* Get all plans */
